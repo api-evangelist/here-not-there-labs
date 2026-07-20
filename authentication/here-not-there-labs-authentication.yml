@@ -1,0 +1,49 @@
+generated: '2026-07-19'
+method: searched
+source: >-
+  docs.towns.com (bots getting-started, delegate-key-signing, react-sdk),
+  protocol/auth.proto (AuthenticationService), and the first-party siwe package.
+  No REST OpenAPI securitySchemes are published (the docs OpenAPI endpoint serves
+  a Mintlify sample), so this profile is derived from the SDK/bot docs and proto.
+provider: Here Not There Labs
+product: Towns Protocol
+docs: https://docs.towns.com/build/bots/getting-started
+summary: >-
+  Towns is a wallet-native, decentralized protocol. End users authenticate by
+  signing with an Ethereum wallet (Sign-In with Ethereum / EIP-4361 via the
+  first-party siwe library), typically using a delegate key so the root wallet
+  key is not exposed. Bots/apps authenticate with a protocol-issued app identity
+  (APP_PRIVATE_DATA) and verify inbound webhooks with a JWT_SECRET. At the RPC
+  layer, AuthenticationService issues a short-lived session for Stream RPC calls.
+schemes:
+- id: siwe
+  type: wallet-signature
+  standard: EIP-4361 (Sign-In with Ethereum)
+  description: >-
+    Users sign a SIWE message with their Ethereum wallet to establish identity.
+    Implemented via the first-party @towns-protocol siwe library.
+  evidence: siwe package published by the org; connectTowns / signAndConnect react hooks.
+- id: delegate-key-signing
+  type: delegated-key
+  description: >-
+    A delegate signing key is authorized by the user's root wallet so the app can
+    sign events without exposing the root key.
+  docs: https://docs.towns.com/build/delegate-key-signing
+- id: rpc-session
+  type: session-token
+  description: >-
+    AuthenticationService.StartAuthentication / FinishAuthentication issue a
+    short-lived session used to authorize Stream RPC (StreamService) calls.
+  evidence: protocol/auth.proto AuthenticationService.
+- id: app-identity
+  type: app-credential
+  description: >-
+    Bots/apps receive an APP_PRIVATE_DATA credential (private key + encryption
+    device) at registration time, used to sign and decrypt on behalf of the app.
+  evidence: docs bots getting-started; apps.proto AppRegistryService.Register / RotateSecret.
+- id: webhook-jwt
+  type: jwt
+  description: >-
+    Inbound webhook requests from Towns servers to a bot are verified using the
+    bot's JWT_SECRET issued at creation.
+  evidence: docs bots getting-started.
