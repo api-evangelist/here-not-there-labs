@@ -1,0 +1,67 @@
+generated: '2026-07-19'
+method: searched
+source: >-
+  docs.towns.com/build/bots/events + getting-started + protocol/apps.proto
+  (AppRegistryService.RegisterWebhook). Towns Protocol bot/app webhook event
+  catalog. This is a webhook (server-push) surface, not a published AsyncAPI
+  document; captured as a Webhooks catalog.
+type: Webhooks
+provider: Here Not There Labs
+product: Towns Protocol
+transport:
+  style: webhook
+  description: >-
+    Towns servers deliver events to a bot's registered webhook URL. The bot's
+    webhook URL is registered via the developer portal (app.towns.com/developer)
+    and, at the protocol level, via AppRegistryService.RegisterWebhook.
+  verification: >-
+    Incoming webhook requests are verified using the bot's JWT_SECRET (issued at
+    bot creation). The bot decrypts message content using its APP_PRIVATE_DATA
+    encryption device.
+  forwarding_modes:
+  - name: All Messages
+    description: Bot receives every event in channels it is in; enables onTip, onChannelJoin, onChannelLeave, onEventRevoke.
+  - name: Mentions, Commands, Replies & Reactions
+    default: true
+    description: Bot receives mentions, replies to its messages, reactions, and slash commands.
+  - name: No Messages
+    description: Bot receives no message events; for external-only bots driven by custom webhooks or timers.
+base_payload:
+  description: All events share a common BasePayload structure.
+  fields:
+  - name: userId
+    description: The user who triggered the event.
+  - name: spaceId
+    description: The space the event occurred in (null for DM channels).
+  - name: channelId
+    description: The channel the event occurred in.
+  - name: eventId
+    description: The unique event ID.
+  - name: createdAt
+    description: The date and time the event occurred.
+  - name: isDm
+    description: Flag indicating whether the event occurred in a DM channel.
+events:
+- handler: onMessage
+  description: Fires when a message is sent in a channel the bot is in.
+  fields: [message, replyId, threadId, mentions, isMentioned]
+- handler: onSlashCommand
+  description: Fires when a user invokes one of the bot's slash commands.
+  fields: [command, args, mentions]
+- handler: onReaction
+  description: Fires when a reaction is added.
+- handler: onMessageEdit
+  description: Fires when a message is edited.
+- handler: onRedaction
+  description: Fires when a message is redacted/deleted.
+- handler: onReply
+  description: Fires when a user replies to one of the bot's messages.
+- handler: onTip
+  description: Fires when a tip is sent (requires All Messages forwarding mode).
+- handler: onChannelJoin
+  description: Fires when a user joins a channel (requires All Messages forwarding mode).
+- handler: onChannelLeave
+  description: Fires when a user leaves a channel (requires All Messages forwarding mode).
+- handler: onEventRevoke
+  description: Fires when an event is revoked (requires All Messages forwarding mode).
+docs: https://docs.towns.com/build/bots/events

@@ -1,0 +1,64 @@
+generated: '2026-07-19'
+method: derived
+source: >-
+  Derived from docs.towns.com (bots events, react-sdk hooks, towns-encryption,
+  messaging-datastructures) and protocol/protocol.proto (StreamService). Captures
+  cross-cutting runtime semantics of the Towns Protocol SDK/RPC surface. Towns is
+  an event-sourced, decentralized protocol rather than a REST API, so several
+  conventional REST concepts (idempotency keys, cursor pagination envelopes) do
+  not map directly.
+provider: Here Not There Labs
+product: Towns Protocol
+transport:
+  protocol: Connect/gRPC (protobuf) over HTTP/2
+  services: [StreamService, AppRegistryService, AuthenticationService]
+  note: >-
+    Clients normally use the @towns-protocol/sdk / react-sdk rather than calling
+    RPC directly. RPC is defined in the public grpc/ .proto files in this repo.
+auth_style:
+  summary: Wallet-native. SIWE (EIP-4361) for users, delegate-key signing, RPC session, app credentials for bots.
+  see: authentication/here-not-there-labs-authentication.yml
+data_model:
+  model: event-sourced streams
+  description: >-
+    State is expressed as ordered, signed events grouped into Miniblocks within
+    per-entity Streams (spaces, channels, DMs, GDMs, user streams, media). Events
+    are carried in signed Envelopes (hash + signature); event id is the envelope
+    hash. Prior events are referenced by hash.
+  entities: [Space, Channel, DM, GDM, Stream, Miniblock, Envelope, StreamEvent]
+pagination:
+  style: stream-scrollback
+  description: >-
+    History is retrieved by walking miniblocks backward. The SDK exposes
+    useScrollback() to page older timeline events; StreamService.GetMiniblocks
+    fetches a range of miniblocks; GetStreamEx streams events.
+  params: [fromInclusiveMiniblockNum, toExclusive]
+  response_fields: [miniblocks, partial]
+sync:
+  description: >-
+    Real-time updates use server-streaming sync: SyncStreams / AddStreamToSync /
+    ModifySync / CancelSync / PingSync on StreamService. React hooks (useTimeline,
+    useSyncAgent, TownsSyncProvider) wrap this.
+encryption:
+  end_to_end: true
+  description: >-
+    Messages are end-to-end encrypted. Encryption uses Double Ratchet primitives
+    (@towns-protocol/olm and vodozemac bindings) via @towns-protocol/encryption.
+  docs: https://docs.towns.com/build/towns-encryption
+identity:
+  spaces: On-chain Space contracts (ERC-721 ownership); memberships, roles, and entitlements enforced by smart contracts.
+  entitlements: Cross-chain entitlement checking (token/NFT gating) for channel/space access.
+error_semantics:
+  description: >-
+    RPC errors surface as Connect/gRPC status codes (e.g. NOT_FOUND, PERMISSION_DENIED,
+    UNAUTHENTICATED, RESOURCE_EXHAUSTED). No RFC 9457 problem+json envelope is published.
+versioning:
+  packages: "@towns-protocol npm scope, semver; current line 1.0.x"
+  proto_package: river (proto3)
+  changelogs:
+  - https://docs.towns.com/build/bots/changelog
+  - https://docs.towns.com/build/react-sdk/changelog
+cross_references:
+  authentication: authentication/here-not-there-labs-authentication.yml
+  webhooks: asyncapi/here-not-there-labs-bot-events.yml
+  protobuf: grpc/here-not-there-labs-protocol.proto

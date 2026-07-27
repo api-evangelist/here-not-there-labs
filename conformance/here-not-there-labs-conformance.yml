@@ -1,0 +1,54 @@
+generated: '2026-07-19'
+method: derived
+source: >-
+  Derived from docs.towns.com, the first-party siwe / encryption packages, the
+  public protobuf definitions, and the published MiCA whitepaper. Asserts which
+  cross-cutting industry standards the Towns Protocol surface conforms to, with
+  evidence. Absence/false is honest data.
+provider: Here Not There Labs
+product: Towns Protocol
+standards:
+- id: eip-4361-siwe
+  name: Sign-In with Ethereum (EIP-4361)
+  conforms: true
+  evidence: First-party siwe library published by the org; connectTowns / signAndConnect auth flow.
+- id: connect-grpc
+  name: Connect / gRPC (protobuf, proto3)
+  conforms: true
+  evidence: protocol/*.proto define StreamService, AppRegistryService, AuthenticationService; @towns-protocol/rpc-connector wraps @connectrpc/connect-node.
+- id: e2e-encryption
+  name: End-to-end encryption (Double Ratchet)
+  conforms: true
+  evidence: "@towns-protocol/encryption using olm/vodozemac (Double Ratchet); docs.towns.com/build/towns-encryption."
+- id: mica
+  name: EU Markets in Crypto-Assets (MiCA) disclosure
+  conforms: true
+  evidence: Published MiCA whitepaper at docs.towns.com/white-paper/mica-whitepaper.
+- id: erc-721
+  name: ERC-721 (Space ownership NFTs)
+  conforms: true
+  evidence: Spaces are ownable via on-chain ERC-721 Space contracts; docs.towns.com/towns-smart-contracts/space-ownership.
+- id: oauth2
+  name: OAuth 2.0
+  conforms: false
+  evidence: No OAuth authorization server; auth is wallet-signature (SIWE) based.
+- id: oidc
+  name: OpenID Connect
+  conforms: false
+  evidence: No OIDC discovery document served (/.well-known/openid-configuration -> 404).
+- id: rfc9457
+  name: RFC 9457 Problem Details
+  conforms: false
+  evidence: RPC errors use Connect/gRPC status codes, not application/problem+json.
+- id: fapi
+  name: FAPI
+  conforms: false
+  evidence: Not a financial-grade OAuth API.
+- id: scim
+  name: SCIM
+  conforms: false
+  evidence: Identity is wallet/on-chain, not SCIM-provisioned.
+- id: fhir
+  name: FHIR
+  conforms: false
+  evidence: Not a healthcare API.

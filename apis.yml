@@ -1,22 +1,137 @@
 aid: here-not-there-labs
 name: Here Not There Labs
-description: Here Not There Labs is a company surfaced as a portfolio company of a16z and added to the
-  API Evangelist network as a stub for enrichment. This profile is a lead awaiting the enrichment pipeline.
+description: >-
+  Here Not There Labs (Here Not There, Inc., operating as hntlabs.com) is the
+  a16z-backed company behind Towns Protocol, an open, decentralized messaging
+  protocol built on Base (an Ethereum L2) that powers ownable, programmable
+  group chat spaces, memberships, direct messages, and decentralized finance.
+  The protocol is delivered to builders as a set of first-party TypeScript
+  packages under the @towns-protocol npm scope (client SDK, React SDK, bot
+  framework, encryption, and generated protobuf bindings), a Connect/gRPC Stream
+  RPC surface defined in public .proto files, a bot/app framework with a
+  webhook-driven event model, and end-to-end message encryption. Spaces,
+  memberships, roles, and entitlements are enforced by on-chain smart contracts,
+  and a network of Stream Nodes run by node operators carries encrypted message
+  streams. This profile was surfaced as an a16z portfolio lead and enriched from
+  the company's public developer surface (docs.towns.com, app.towns.com, the
+  towns-protocol GitHub organization, and npm).
 url: https://raw.githubusercontent.com/api-evangelist/here-not-there-labs/refs/heads/main/apis.yml
+accessModel:
+  pricing: unknown
+  onboarding: unknown
+  trial: false
+  try_now: false
+  public: false
+  label: Unknown
+  confidence: low
+  source:
+  - authentication
+  generated: '2026-07-22'
+  method: derived
+image: https://towns.com/ogtowns.jpg
 x-type: company
 x-source: vc-portfolio
 x-backed-by:
 - a16z
-x-tier: stub
-x-tier-reason: portfolio-lead
+x-tier: profiled
+x-tier-reason: portfolio-lead-enriched
 specificationVersion: '0.20'
 created: '2026-07-17'
-modified: '2026-07-17'
+modified: '2026-07-19'
 tags:
 - Company
-apis: []
+- Messaging
+- Decentralized
+- Web3
+- Blockchain
+- Protocol
+- Chat
+- Bots
+- Encryption
+- SDK
+apis:
+- name: Towns Protocol
+  description: >-
+    Towns Protocol is an open, decentralized messaging protocol built on Base.
+    Builders integrate via first-party TypeScript SDKs, a React SDK of hooks,
+    and a bot/app framework. Under the hood the network exposes a Connect/gRPC
+    Stream RPC service (StreamService, AppRegistryService, AuthenticationService)
+    defined in public protobuf files, with end-to-end encrypted message streams
+    carried by Stream Nodes and spaces/memberships/entitlements enforced by
+    on-chain smart contracts.
+  humanURL: https://docs.towns.com
+  baseURL: https://app.towns.com
+  tags:
+  - Messaging
+  - Web3
+  - Protocol
+  - Bots
+  - gRPC
+  properties:
+  - type: Documentation
+    url: https://docs.towns.com
+  - type: GettingStarted
+    url: https://docs.towns.com/build/bots/getting-started
+  - type: Protobuf
+    url: grpc/here-not-there-labs-protocol.proto
+  - type: Protobuf
+    url: grpc/here-not-there-labs-apps.proto
+  - type: Protobuf
+    url: grpc/here-not-there-labs-auth.proto
+  - type: Protobuf
+    url: grpc/here-not-there-labs-payloads.proto
+  - type: Webhooks
+    url: asyncapi/here-not-there-labs-bot-events.yml
+  - type: Authentication
+    url: authentication/here-not-there-labs-authentication.yml
+  - type: Conventions
+    url: conventions/here-not-there-labs-conventions.yml
+common:
+- type: DomainSecurity
+  url: security/here-not-there-labs-domain-security.yml
+- type: Website
+  url: https://www.towns.com
+- type: DeveloperPortal
+  url: https://app.towns.com/developer
+- type: Documentation
+  url: https://docs.towns.com
+- type: APIReference
+  url: https://docs.towns.com/build/react-sdk/getting-started
+- type: GettingStarted
+  url: https://docs.towns.com/build/bots/getting-started
+- type: GitHubOrganization
+  url: https://github.com/towns-protocol
+- type: SignUp
+  url: https://app.towns.com/developer
+- type: LLMsTxt
+  url: llms/here-not-there-labs-llms.txt
+- type: Packages
+  url: packages/here-not-there-labs-packages.yml
+- type: SDKs
+  url: packages/here-not-there-labs-packages.yml
+- type: CLI
+  url: cli/here-not-there-labs-cli.yml
+- type: Protobuf
+  url: grpc/here-not-there-labs-protocol.proto
+- type: Webhooks
+  url: asyncapi/here-not-there-labs-bot-events.yml
+- type: Conventions
+  url: conventions/here-not-there-labs-conventions.yml
+- type: Authentication
+  url: authentication/here-not-there-labs-authentication.yml
+- type: Conformance
+  url: conformance/here-not-there-labs-conformance.yml
+- type: Compliance
+  url: conformance/here-not-there-labs-conformance.yml
+- type: AgentSkill
+  url: skills/_index.yml
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
+x-enrichment:
+  date: '2026-07-19'
+  status: backfilled
+  pass: local-v1
+  note: backfilled from .gitignore signal + verified work evidence

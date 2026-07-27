@@ -1,0 +1,1569 @@
+syntax = "proto3";
+package river;
+option go_package = "github.com/towns-protocol/towns/core/node/protocol";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+/** 
+* Miniblock contains a list of events and the header event.
+* Events must be in the same order as in the header, which is of type MiniblockHeader.
+* Only signed data (Envelopes) should exist in this data structure.
+*/
+message Miniblock {
+    repeated Envelope events = 1;
+    Envelope header = 2;
+
+    /**
+     * Partial indicates that this is the copy of miniblock with some events omitted.
+     * If GetMiniblocks was used with the filter, and some events were omitted,
+     * then partial will be true.
+    */
+    bool partial = 3;
+}
+
+/**
+ * Envelope contains serialized event, and its hash and signature.
+ * hash is used as event id. Subsequent events reference this event by hash.
+ * event is a serialized StreamEvent
+ */
+message Envelope {
+    /**
+     * Hash of event.
+     * While hash can be recalculated from the event, having it here explicitly
+     * makes it easier to work with event.
+     * For the event to be valid, must match hash of event field. 
+     */
+    bytes hash = 1;
+
+    /**
+     * Signature.
+     * For the event to be valid, signature must match event.creator_address
+     * or be signed by the address from event.delegate_sig.
+     */
+    bytes signature = 2;
+
+    bytes event = 3;
+}
+
+/**
+* StreamEvent is a single event in the stream.
+*/
+message StreamEvent {
+    /**
+     * Address of the creator of the event.
+     * For user - address of the user's wallet.
+     * For server - address of the server's keypair in staking smart contract.
+     *
+     * For the event to be valid:
+     * If delegate_sig is present, creator_address must match delegate_sig.
+     * If delegate_sig is not present, creator_address must match event signature in the Envelope.
+     */
+    bytes creator_address = 1;
+
+     /**
+      * delegate_sig allows event to be signed by a delegate keypair 
+      *
+      * delegate_sig constains signature of the 
+      * public key of the delegate keypair + the delegate_expiry_epoch_ms.
+      * User's wallet is used to produce this signature.
+      * 
+      * If present, for the event to be valid:
+      * 1. creator_address must match delegate_sig's signer public key
+      * 2. delegate_sig should be signed as an Ethereum Signed Message (eip-191)
+      *
+      * Server nodes sign node-produced events with their own keypair and do not
+      * need to use delegate_sig.
+      */
+    bytes delegate_sig = 2;
+ 
+    /** Salt ensures that similar messages are not hashed to the same value. genId() from id.ts may be used. */
+    bytes salt = 3;
+ 
+    /** Hash of a preceding miniblock. Null for the inception event. Must be a recent miniblock */
+    optional bytes prev_miniblock_hash = 4;
+ 
+    /** CreatedAt is the time when the event was created.
+    NOTE: this value is set by clients and is not reliable for anything other than displaying
+    the value to the user. Never use this value to sort events from different users.  */
+    int64 created_at_epoch_ms = 5;
+    
+    /** DelegateExpiry is the time when the delegate signature expires. */
+    int64 delegate_expiry_epoch_ms = 6;
+
+    /** Tags are optional, used for external systems to deliver notifications. */
+    Tags tags = 7;
+
+    /** prev_miniblock_num contains miniblock number for prev_miniblock_hash. */
+    optional int64 prev_miniblock_num = 8;
+
+    /** Set to true when there is no need to save the event. */
+    bool ephemeral = 9;
+
+    /** Variable-type payload. 
+      * Payloads should obey the following rules:
+      * - payloads should have their own unique type
+      * - each payload should have a oneof content field
+      * - each payload, with the exception of miniblock header and member payloads
+      *     should have an inception field inside the content oneof
+      * - each payload should have a unique Inception type
+      * - payloads can't violate previous type recursively to inception payload
+    */
+    oneof payload {
+        MiniblockHeader miniblock_header = 100;
+        MemberPayload member_payload = 101;
+        SpacePayload space_payload = 102;
+        ChannelPayload channel_payload = 103;
+        UserPayload user_payload = 104;
+        UserSettingsPayload user_settings_payload = 105;
+        UserMetadataPayload user_metadata_payload = 106;
+        UserInboxPayload user_inbox_payload = 107;
+        MediaPayload media_payload = 108;
+        DmChannelPayload dm_channel_payload = 109;
+        GdmChannelPayload gdm_channel_payload = 110;
+        MetadataPayload metadata_payload = 111;
+    }
+}
+
+/** 
+* MiniblockHeader is a special event that forms a block from set of the stream events.
+* Hash of the serialized StreamEvent containing MiniblockHeader is used as a block hash.
+*/
+message MiniblockHeader {
+    // Miniblock number.
+    // 0 for genesis block.
+    // Must be 1 greater than the previous block number.
+    int64 miniblock_num = 1;
+
+    // Hash of the previous block.
+    bytes prev_miniblock_hash = 2;
+
+    // Timestamp of the block.
+    // Must be greater than the previous block timestamp.
+    google.protobuf.Timestamp timestamp = 3;
+
+    // Hashes of the events included in the block.
+    repeated bytes event_hashes = 4;
+
+    // Snapshot of the state at the end of the block.
+    optional Snapshot snapshot = 5;
+
+    // count of all events in the stream before this block
+    int64 event_num_offset = 6;
+
+    // pointer to block with previous snapshot
+    int64 prev_snapshot_miniblock_num = 7;
+
+    // hash of the snapshot.
+    optional bytes snapshot_hash = 8;
+
+    // hashes of events that were rejected from the block
+    repeated bytes rejected_event_hashes = 9;
+
+    // stream payloads are required to have a content field
+    oneof content {
+        google.protobuf.Empty none = 100;
+    }
+}
+
+/**
+* MemberPayload
+* can appear in any stream
+*/
+message MemberPayload {
+    message Snapshot {
+        message Member {
+            bytes user_address = 1;
+            int64 miniblock_num = 2;
+            int64 event_num = 3;
+            repeated KeySolicitation solicitations = 4;
+            WrappedEncryptedData username = 5;
+            WrappedEncryptedData display_name = 6;
+            bytes ens_address = 7;
+            Nft nft = 8;    
+            map<string, uint64> tips_sent = 9; // tips sent by this user: map<currency, amount>
+            map<string, uint64> tips_received = 10; // tips received by this user: map<currency, amount>
+            map<string, uint64> tips_sent_count = 11; // total tips sent by this user: map<currency, amount>
+            map<string, uint64> tips_received_count = 12; // total tips received by this user: map<currency, amount>
+            optional bytes app_address = 13;
+        }
+        
+        repeated Member joined = 1;
+        repeated SnappedPin pins = 2;
+        reserved 3;
+        EncryptionAlgorithm encryption_algorithm = 4;
+        // tips sent in this stream: map<currency, amount>
+        map<string, uint64> tips = 5;
+        map<string, uint64> tips_count = 6;
+    }
+
+    message Membership {
+        reserved 4;
+        MembershipOp op = 1;
+        bytes user_address = 2;
+        bytes initiator_address = 3;
+        MembershipReason reason = 5;
+        // app_address is defined as the contract address of the app associated with this
+        // userId. It applies, for example, if the user is an app client.
+        optional bytes app_address = 6;
+    }
+    
+    message KeySolicitation {
+        string device_key = 1; // requesters device_key
+        string fallback_key = 2; // requesters fallback_key
+        bool is_new_device = 3; // true if this is a new device, session_ids will be empty
+        repeated string session_ids = 4; 
+    }
+
+    message KeyFulfillment {
+        bytes user_address = 1;
+        string device_key = 2;
+        repeated string session_ids = 3; 
+    }
+
+    message Nft {
+        int32 chain_id = 1;
+        bytes contract_address = 2;
+        bytes token_id = 3;
+    }
+
+    message SnappedPin {
+        bytes creator_address = 1;
+        Pin pin = 2;
+    }
+
+    message Pin { 
+        bytes event_id = 1;
+        StreamEvent event = 2;
+    }
+
+    message Unpin {
+        bytes event_id = 1;
+    }
+
+    message EncryptionAlgorithm {
+        optional string algorithm = 1;
+    }
+
+    message MemberBlockchainTransaction {
+        BlockchainTransaction transaction = 1;
+        bytes from_user_address = 2;
+    }
+
+    oneof content {
+        Membership membership = 1;
+        KeySolicitation key_solicitation = 2;
+        KeyFulfillment key_fulfillment = 3;
+        EncryptedData username = 4;
+        EncryptedData display_name = 5;
+        bytes ens_address = 6;
+        Nft nft = 7;
+        Pin pin = 8;
+        Unpin unpin = 9;
+        MemberBlockchainTransaction member_blockchain_transaction = 11;
+        EncryptionAlgorithm encryption_algorithm = 12;
+    }
+    reserved 10;
+}
+
+/**
+* SpacePayload
+*/
+message SpacePayload {
+    message Snapshot {
+        // inception
+        Inception inception = 1;
+        // channels: sorted by channel_id
+        repeated ChannelMetadata channels = 2;
+        SnappedSpaceImage space_image = 3;
+    }
+
+    message SnappedSpaceImage {
+        bytes creator_address = 1;
+        EncryptedData data = 2;
+        int64 event_num = 3;
+        bytes event_hash = 4;
+    }
+    
+    message Inception {
+        bytes stream_id = 1;
+        StreamSettings settings = 2;
+    }
+
+    message ChannelSettings {
+        bool autojoin = 1;
+        bool hide_user_join_leave_events = 2;
+    }
+
+    message ChannelMetadata {
+        reserved 4, 5;
+        ChannelOp op = 1;
+        bytes channel_id = 2;
+        EventRef origin_event = 3;
+        int64 updated_at_event_num = 6;
+        ChannelSettings settings = 7;
+    }
+
+    message ChannelUpdate {
+        reserved 4, 5;
+        ChannelOp op = 1;
+        bytes channel_id = 2;
+        EventRef origin_event = 3;
+        ChannelSettings settings = 6;
+    }
+
+    message UpdateChannelAutojoin {
+        bytes channel_id = 1;
+        bool autojoin = 2;
+    }
+
+    message UpdateChannelHideUserJoinLeaveEvents {
+        bytes channel_id = 1;
+        bool hide_user_join_leave_events = 2;
+    }
+
+    oneof content {
+        Inception inception = 1;
+        ChannelUpdate channel = 2;
+        EncryptedData space_image = 3;
+        UpdateChannelAutojoin update_channel_autojoin = 4;
+        UpdateChannelHideUserJoinLeaveEvents update_channel_hide_user_join_leave_events = 5;
+    }
+}
+
+/** 
+* ChannelPayload
+*/
+message ChannelPayload {
+    message Snapshot {
+        // inception
+        Inception inception = 1;
+    }
+    
+    message Inception {
+        reserved 3, 4, 6;
+        bytes stream_id = 1;
+        StreamSettings settings = 5;
+        SpacePayload.ChannelSettings channel_settings = 7;
+    }
+
+    message Redaction {
+        bytes event_id = 1;
+    }
+
+    oneof content {
+        Inception inception = 1;
+        EncryptedData message = 2;
+        Redaction redaction = 3;
+        google.protobuf.Any custom = 4;
+        InteractionRequest interaction_request = 5;
+        InteractionResponse interaction_response = 6;
+    }
+}
+
+/**
+* DmChannelPayload
+*/
+message DmChannelPayload {
+    message Snapshot {
+        Inception inception = 1;
+    }
+
+    message Inception {
+        bytes stream_id = 1;
+        bytes first_party_address = 2;
+        bytes second_party_address = 3;
+        StreamSettings settings = 4;
+        // App contract address for first party if they are a bot/app.
+        // When set, indicates a bot-to-user DM and enables app installation checks.
+        optional bytes first_party_app_address = 5;
+        // App contract address for second party if they are a bot/app.
+        // When set, indicates a user-to-bot DM and enables app installation checks.
+        optional bytes second_party_app_address = 6;
+    }
+
+    oneof content {
+        Inception inception = 1;
+        EncryptedData message = 3;
+        google.protobuf.Any custom = 4;
+    }
+}
+
+/**
+* GdmChannelPayload
+*/
+message GdmChannelPayload {
+    message Snapshot {
+        Inception inception = 1;
+        WrappedEncryptedData channel_properties = 2;
+    }
+
+    message Inception {
+        bytes stream_id = 1;
+        EncryptedData channel_properties = 2;
+        StreamSettings settings = 3;
+    }
+
+    oneof content {
+        Inception inception = 1;
+        EncryptedData message = 2;
+        EncryptedData channel_properties = 3;
+        google.protobuf.Any custom = 4;
+    }
+}
+
+/**
+* UserPayload
+* A potentially large stream that contains all of a users memberships and is the entrypoint for 
+* many user interactions. For example, to join a space, the user posts a UserMembership event to this stream.
+* It is meant to be downloaded once by the user and updated via delta updates over sync.
+*/
+message UserPayload {
+    message Snapshot {
+        // inception
+        Inception inception = 1;
+        // memberships, sorted by stream_id
+        repeated UserMembership memberships = 2;
+        // tips sent by this user: map<currency, amount>
+        map<string, uint64> tips_sent = 3;
+        // tips received by this user: map<currency, amount>
+        map<string, uint64> tips_received = 4;
+        // total tips sent by this user: map<currency, amount>
+        map<string, uint64> tips_sent_count = 5;
+        // total tips received by this user: map<currency, amount>
+        map<string, uint64> tips_received_count = 6;
+    }
+
+    message Inception {
+        bytes stream_id = 1;
+        StreamSettings settings = 2;
+        // app_address is defined as the contract address of the app associated with this
+        // userId. It only applies if the user is a bot.
+        optional bytes app_address = 3;
+    }
+    
+    // update own membership
+    message UserMembership {
+        reserved 4;
+        bytes stream_id = 1;
+        MembershipOp op = 2;
+        optional bytes inviter = 3;
+        optional MembershipReason reason = 5;
+    }
+
+    // update someone else's membership
+    message UserMembershipAction {
+        reserved 4;
+        bytes stream_id = 1;
+        bytes user_id = 2; 
+        MembershipOp op = 3;
+        optional MembershipReason reason = 5;
+    }
+
+    // derived event, only send from nodes
+    message ReceivedBlockchainTransaction {
+        BlockchainTransaction transaction = 1;
+        bytes from_user_address = 2;
+    }
+
+    oneof content {
+        Inception inception = 1;
+        UserMembership user_membership = 2;
+        UserMembershipAction user_membership_action = 3;
+        BlockchainTransaction blockchain_transaction = 4; // added by user
+        ReceivedBlockchainTransaction received_blockchain_transaction = 5; // added by nodes
+    }
+}
+
+/**
+* UserInboxPayload
+* messages to a user encrypted per deviceId
+* This is a write heavy stream. Anything encrypted to a single user/device pair is sent to this stream.
+* The snapshot keeps track of read markers for each of the user's devices so that the user can effeciently download all new events.
+*/
+message UserInboxPayload {
+    message Snapshot {
+        message DeviceSummary {
+            /**
+            * UpperBound = latest to device event sent from other client per deviceKey
+            * LowerBound = latest ack sent by stream owner per deviceKey
+            * on ack, if UpperBound <= LowerBound then delete this deviceKey entry from the record
+            * on ack or new session, if any device’s lower bound < N generations ago, delete the deviceKey entry from the record
+            */
+            int64 lower_bound = 1;
+            int64 upper_bound = 2;
+        }
+
+        Inception inception = 1;
+        // deviceKey: miniblockNum that the ack was snapshotted
+        map<string, DeviceSummary> device_summary = 2;
+    }
+
+    message Inception {
+        bytes stream_id = 1;
+        StreamSettings settings = 2;
+        // app_address is defined as the contract address of the app associated with this
+        // userId. It only applies if the user is a bot.
+        optional bytes app_address = 3;
+    }
+
+    message GroupEncryptionSessions {
+        bytes stream_id = 1;
+        string sender_key = 2;
+        repeated string session_ids = 3;
+        // deviceKey: per device ciphertext of encrypted session keys that match session_ids 
+        map<string, string> ciphertexts = 4;
+        string algorithm = 5;
+    }
+
+    message Ack {
+        string device_key = 1;
+        int64 miniblock_num = 2;
+    }
+
+    oneof content {
+        Inception inception = 1;
+        Ack ack = 2;
+        GroupEncryptionSessions group_encryption_sessions = 3;
+    }
+}
+
+/**
+* UserSettingsPayload
+* blob storage for the user 
+* written to and read by the user
+*/
+message UserSettingsPayload {
+    message Snapshot {
+         // for a specific blocked user, there might be multiple block or unblock events
+        message UserBlocks {
+            message Block {
+                bool is_blocked = 1;
+                int64 event_num = 2;
+            }
+            bytes user_id = 1;
+            repeated Block blocks = 2;
+        
+        }
+        // inception
+        Inception inception = 1;
+        // fullyReadMarkers: sorted by stream_id
+        repeated FullyReadMarkers fully_read_markers = 2;
+        repeated UserBlocks user_blocks_list = 3;
+    }
+
+    message Inception {
+        bytes stream_id = 1;
+        StreamSettings settings = 2;
+        // app_address is defined as the contract address of the app associated with this
+        // userId. It only applies if the user is a bot.
+        optional bytes app_address = 3;
+    }
+
+    message MarkerContent {
+        string data = 1;
+    }
+
+    message FullyReadMarkers {
+        bytes stream_id = 1;
+        MarkerContent content = 2;
+    }
+
+    message UserBlock {
+        bytes user_id = 1;
+        bool is_blocked = 2;
+        int64 event_num = 3;
+    }
+
+    oneof content {
+        Inception inception = 1;
+        FullyReadMarkers fully_read_markers = 2;
+        UserBlock user_block = 3;
+    }
+}
+
+/**
+* UserMetadataPayload
+* A light stream containing the user's "public" data like public encryption keys and links to user profile info.
+* Should remain small so that it can be quickly read by other users.
+*/
+message UserMetadataPayload {
+    message Snapshot {
+        // inception
+        Inception inception = 1;
+        // device keys for this user, unique by device_key, capped at N, most recent last
+        repeated EncryptionDevice encryption_devices = 2;
+        // user profile image
+        WrappedEncryptedData profile_image = 3;
+        // user bio
+        WrappedEncryptedData bio = 4;
+    }
+
+    message Inception {
+        bytes stream_id = 1;
+        StreamSettings settings = 2;
+        // app_address is defined as the contract address of the app associated with this
+        // userId. It only applies if the user is a bot.
+        optional bytes app_address = 3;
+    }
+
+    message EncryptionDevice {
+        string device_key = 1;
+        string fallback_key = 2;
+    }
+
+    oneof content {
+        Inception inception = 1;
+        EncryptionDevice encryption_device = 2;
+        EncryptedData profile_image = 3;
+        EncryptedData bio = 4;
+    }
+}
+
+/**
+* MediaPayload
+*/
+message MediaPayload {
+    message Snapshot {
+        Inception inception = 1;
+    }
+    
+    message Inception {
+        bytes stream_id = 1;
+        optional bytes channel_id = 2;
+        int32 chunk_count = 3;
+        StreamSettings settings = 4;
+        optional bytes space_id = 5;
+        optional bytes user_id = 6;
+
+        // Setting for enabling per chunk encryption for media payloads.
+        // Meaning, the given media stream has each chunk individually encrypted
+        // rather than encrypting the full data and splitting into chunks.
+        optional bool per_chunk_encryption = 7;
+    }
+
+    message Chunk {
+        bytes data = 1;
+        int32 chunk_index = 2;
+        optional bytes iv = 3;
+    }
+
+    oneof content {
+        Inception inception = 1;
+        Chunk chunk = 2;
+    }
+}
+
+message StreamRecord {
+    bytes stream_id = 1;
+    bytes last_miniblock_hash = 2;
+    int64 last_miniblock_num = 3;
+    repeated bytes nodes = 4;
+    int64 replication_factor = 5;
+}
+
+message MetadataPayload {
+    message Snapshot {
+        Inception inception = 1;
+        repeated StreamRecord streams = 2;
+    }
+
+    message Inception {
+        bytes stream_id = 1;
+        StreamSettings settings = 2;
+    }
+
+    message NewStream {
+        bytes stream_id = 1;
+        bytes genesis_miniblock_hash = 2;
+        repeated bytes nodes = 3;
+        int64 replication_factor = 4;
+    }
+
+    message LastMiniblockUpdate {
+        bytes stream_id = 1;
+        bytes last_miniblock_hash = 2;
+        int64 last_miniblock_num = 3;
+    }
+
+    message PlacementUpdate {
+        bytes stream_id = 1;
+        repeated bytes nodes = 2;
+        int64 replication_factor = 3;
+    }
+
+    oneof content {
+        Inception inception = 1;
+        NewStream new_stream = 2;
+        LastMiniblockUpdate last_miniblock_update = 3;
+        PlacementUpdate placement_update = 4;
+    }
+}
+
+/**
+* Snapshot contains a summary of all state events up to the most recent miniblock
+*/
+message Snapshot {
+    MemberPayload.Snapshot members = 1;
+    int32 snapshot_version = 2;
+    
+    // Snapshot data specific for each stream type.
+    oneof content {
+        SpacePayload.Snapshot space_content = 101;
+        ChannelPayload.Snapshot channel_content = 102;
+        UserPayload.Snapshot user_content = 103;
+        UserSettingsPayload.Snapshot user_settings_content = 104;
+        UserMetadataPayload.Snapshot user_metadata_content = 105;
+        MediaPayload.Snapshot media_content = 106;
+        DmChannelPayload.Snapshot dm_channel_content = 107;
+        GdmChannelPayload.Snapshot gdm_channel_content = 108;
+        UserInboxPayload.Snapshot user_inbox_content = 109;
+        MetadataPayload.Snapshot metadata_content = 110;
+    }
+}
+
+message BlockchainTransaction {
+    // metadata for tip transactions
+    message Tip {
+        message Event {
+            // required for member tips
+            // optional for bot
+            optional uint64 token_id = 1;
+            bytes currency = 2;
+            bytes sender = 3; // wallet that sent funds
+            bytes receiver = 4; // wallet that received funds
+            uint64 amount = 5;
+            bytes message_id = 6;
+            bytes channel_id = 7;
+        }
+        Event event = 1; // event emitted by the tipping facet
+        bytes toUserAddress = 2; // user that received funds
+    }
+
+    message TokenTransfer {
+        bytes address = 1;
+        string amount = 2; // uint64 isn't big enough
+        bytes sender = 3;
+        bytes message_id = 4;
+        bytes channel_id = 5;
+        bool is_buy = 6;
+    }
+
+    message SpaceReview {
+        enum Action {
+            Add = 0;
+            Update = 1;
+            Delete = 2;
+        }
+        message Event {
+            bytes user = 1;
+            int32 rating = 2;
+            // the comment can be found in the receipt logs
+        }
+        bytes space_address = 1; // space that was reviewed
+        Action action = 2; // action that was taken (add, update, delete)
+        Event event = 3; // event emitted by the space review facet
+    }
+    // required fields
+    BlockchainTransactionReceipt receipt = 1;
+    SolanaBlockchainTransactionReceipt solana_receipt = 2;
+    // optional metadata to be verified by the node
+    oneof content {
+        Tip tip = 101;
+        TokenTransfer token_transfer = 102;
+        SpaceReview space_review = 103;
+    }
+}
+
+/** blockchain transaction receipt */
+message BlockchainTransactionReceipt {
+    message Log {
+        bytes address = 1;
+        repeated bytes topics = 2;
+        bytes data = 3;
+    }
+    uint64 chain_id = 1;
+    bytes transaction_hash = 2;
+    uint64 block_number = 3;
+    bytes to = 4;
+    bytes from = 5;
+    repeated Log logs = 6;
+}
+
+message SolanaBlockchainTransactionReceipt {
+    message Transaction {
+        repeated string signatures = 1;
+    }
+    message Meta {
+        message TokenBalance {
+            message UITokenAmount {
+                string amount = 1;
+                uint32 decimals = 2;
+            }
+            string mint = 1;
+            string owner = 2;
+            UITokenAmount amount = 3;
+        }
+        repeated TokenBalance pre_token_balances = 1;
+        repeated TokenBalance post_token_balances = 2;
+    }
+    uint64 slot = 1;
+    Transaction transaction = 2;
+    Meta meta = 3;
+}
+
+/**
+ * A derived event is produced by the server when there should be an additional event to compliment the
+ * received event. For example, when a user joins a space through an event in the space stream,
+ * the server will produce a derived event in the user stream to indicate that the user joined a
+ * particular space.
+ *
+ * EventRef is used to reference the event that caused the derived event to be produced.
+ */
+message EventRef {
+    bytes stream_id = 1;
+    bytes hash = 2;
+    bytes signature = 3;
+}
+
+/**
+ * StreamSettings is a part of inception payload for each stream type.
+ */
+message StreamSettings {
+    // Test setting for testing with manual miniblock creation through Info debug request. 
+    bool disable_miniblock_creation = 1;
+
+    // Test setting to force creation as a light stream.
+    bool light_stream = 2;
+}
+
+/**
+ * EncryptedData
+ */
+message EncryptedData {
+    /**
+    * Ciphertext of the encryption envelope.
+    */
+    string ciphertext = 1;
+    /**
+    * Encryption algorithm  used to encrypt this event.
+    */
+    string algorithm = 2;
+    /**
+    * Sender device public key identifying the sender's device.
+    */
+    string sender_key = 3;
+    /**
+    * The ID of the session used to encrypt the message in some protocols, 
+    * deprecated in favor of session_id_bytes.
+    */
+    string session_id = 4;
+
+    /**
+    * Optional checksum of the cleartext data.
+    */
+    optional string checksum = 5;
+
+    /**
+    * Optional reference to parent event ID
+    */
+    optional string ref_event_id = 6;
+
+    reserved 7;
+
+    // Used if algorithm is set to 'grpaes'
+    bytes ciphertext_bytes = 8;
+
+    // Used if algorithm is set to 'grpaes'
+    bytes iv_bytes = 9;
+
+    // Used if algorithm is set to 'grpaes'
+    bytes session_id_bytes = 10;
+
+    // used to parse data after it's decrypted
+    EncryptedDataVersion version = 11; 
+
+    // used when encrypting directly to a device
+    optional string device_key = 12;
+}
+
+message WrappedEncryptedData {
+    EncryptedData data = 1;
+    int64 event_num = 2;
+    bytes event_hash = 3;
+}
+
+message SyncCookie  {
+    reserved 4;
+    bytes node_address = 1;
+    bytes stream_id = 2;
+    int64 minipool_gen = 3;
+    bytes prev_miniblock_hash = 5;
+}
+
+message CreationCookie {
+  bytes stream_id = 1;
+  repeated bytes nodes = 2;
+  int64 miniblock_num = 3;
+  bytes prev_miniblock_hash = 4;
+}
+
+message StreamAndCookie {
+    repeated Envelope events = 1;
+    SyncCookie next_sync_cookie = 2;
+    // if non-empty, contains all blocks since the latest snapshot
+    repeated Miniblock miniblocks = 3;
+    bool sync_reset = 4;
+    // if non-empty, contains the latest snapshot of the stream
+    optional Envelope snapshot = 5;
+    // Index of the snapshot miniblock within the miniblocks array
+    int64 snapshot_miniblock_index = 6;
+}
+
+message Minipool {
+    repeated Envelope events = 1;
+}
+
+message Tags {
+    MessageInteractionType message_interaction_type = 1;
+    repeated GroupMentionType group_mention_types = 2;
+    repeated bytes mentioned_user_addresses = 3;
+    repeated bytes participating_user_addresses = 4;
+    optional bytes thread_id = 5;
+    // app_client_address refers to the client address of an app registered to the app
+    // registry contract and not the app's contract address, which is used in other protocol
+    // messages. We expect app_client_address to be populated when the message is a slash
+    // command. 
+    optional bytes app_client_address = 6;
+}
+
+message InfoRequest {
+    repeated string debug = 1;
+}
+
+message InfoResponse {
+    string graffiti = 1;
+    google.protobuf.Timestamp start_time = 2;
+    string version = 3;
+}
+
+message GetStreamExRequest {
+    bytes stream_id = 1;
+    bool omit_snapshot = 2;
+}
+
+// GetStreamExResponse is a stream of raw data that represents the current state of the requested stream.
+// These responses represent streams that are not expected to change once finalized, and have a optimized code path
+// for retrieval. Response may potentially be very large, and are streamed back to the client. The client is expected
+// to martial the raw data back into protobuf messages.
+message GetStreamExResponse {
+    oneof data {
+        Miniblock miniblock = 1;
+        Minipool minipool = 2;
+    }
+    optional Envelope snapshot = 3;
+}
+
+message CreateStreamRequest {
+    repeated Envelope events = 1;
+    bytes stream_id = 2; // stream_id should match the stream_id in the inception payload of the first event
+    map<string, bytes> metadata = 3;
+}
+
+message CreateStreamResponse {
+    // all events in current minipool and cookie allowing to sync from the end of the stream
+    StreamAndCookie stream = 1;
+    // derived events created in other streams when this stream was created
+    repeated EventRef derived_events = 2;
+}
+
+message CreateMediaStreamRequest {
+    repeated Envelope events = 1;
+    bytes stream_id = 2; // stream_id should match the stream_id in the inception payload of the first event
+    map<string, bytes> metadata = 3;
+}
+
+message CreateMediaStreamResponse {
+    CreationCookie next_creation_cookie = 1;
+}
+
+message GetStreamRequest {
+    bytes stream_id = 1;
+    // if optional is true and stream doesn't exist, response will be a nil stream instead of ERROR NOT_FOUND
+    bool optional = 2;
+    // if a sync cookie is provided, the response will be a delta from the sync cookie
+    // or a new sync cookie with sync_reset set to true if the stream has advanced far enough
+    SyncCookie sync_cookie = 3;
+    // Number of miniblocks to include before the snapshot to satisfy recency checks
+    int64 number_of_preceding_miniblocks = 4;
+}
+
+message GetStreamResponse {
+    // all events in current minipool and cookie allowing to sync from the end of the stream
+    StreamAndCookie stream = 1;
+}
+
+/**
+ * EventFilter defines a filter for events based on payload and content type.
+ */
+message EventFilter {
+    /**
+     * payload specifies the payload type to filter (e.g., "member_payload", "space_payload").
+     * Use "*" to match any payload type.
+     */
+    string payload = 1;
+    
+    /**
+     * content specifies the content type within the payload (e.g., "key_solicitation", "inception").
+     * Use "*" to match any content type.
+     */
+    string content = 2;
+}
+
+message GetMiniblocksRequest {
+    bytes stream_id = 1;
+    int64 from_inclusive = 2;
+    int64 to_exclusive = 3;
+    bool omit_snapshots = 4;
+    /**
+     * exclusion_filter contains event filters to exclude from returned miniblocks.
+     * If any events are excluded, the Miniblock.partial field will be set to true.
+     */
+    repeated EventFilter exclusion_filter = 5;
+}
+
+message GetMiniblocksResponse {
+    repeated Miniblock miniblocks = 1;
+    // terminus: true if there are no more blocks to fetch because they've been garbage collected, or you've reached block 0
+    bool terminus = 2;
+    int64 from_inclusive = 3;
+    int64 limit = 4;
+    bool omit_snapshots = 5;
+    map<int64, Envelope> snapshots = 6;
+}
+
+message GetLastMiniblockHashRequest {
+    bytes stream_id = 1;
+}
+
+message GetLastMiniblockHashResponse {
+    bytes hash = 1;
+    int64 miniblock_num = 2;
+    MemberPayload.EncryptionAlgorithm encryption_algorithm = 3;
+}
+
+message AddEventRequest {
+    reserved 3;
+    bytes stream_id = 1;
+    Envelope event = 2;
+}
+
+message AddEventResponse {
+    reserved 1;
+    // all events created during this request including parent events
+    repeated EventRef new_events = 2;
+}
+
+message AddMediaEventRequest {
+    Envelope event = 1;
+    CreationCookie creation_cookie = 2;
+    bool last = 3;
+}
+
+message AddMediaEventResponse {
+    CreationCookie creation_cookie = 1;
+}
+
+// SyncStreamsRequest is a request to start a streams sync session.
+message SyncStreamsRequest {
+    // sync_pos is the list of streams and positions in those streams to receive updates from.
+    repeated SyncCookie sync_pos = 1;
+}
+
+// SyncStreamsResponse is a stream of updates that the client receives for streams it subscribed to within a streams
+// sync session.
+message SyncStreamsResponse {
+    // sync_id is the id of the sync session.
+    string sync_id = 1;
+    // sync_op marks the type of update.
+    SyncOp sync_op = 2;
+    // stream indicates an update of a stream.
+    // only set when sync_op = SYNC_UPDATE
+    StreamAndCookie stream = 3;
+    // pong_nonce is returned after a ping request was made to the sync session through PingSync.
+    // Set with the ping value from the PingSync request when sync_op = SYNC_PONG
+    string pong_nonce = 4;
+    // stream_id is set when sync_op = SYNC_DOWN and indicates it will not receive updates anymore for this stream.
+    // If the client is still is interested in updates for this stream it must re-add the stream to the sync session.
+    bytes stream_id = 5;
+    // target_sync_ids is the chain of sync IDs that is used to deliver the backfill update to the right end client.
+    // For example: client->nodeA->nodeB->nodeA(target sync 1)->client(target sync 2)
+    repeated string target_sync_ids = 6;
+}
+
+// AddStreamToSyncRequest is a request to add a stream to an existing streams sync session.
+message AddStreamToSyncRequest {
+    // sync_id is the id of the sync session.
+    string sync_id = 1;
+    // sync_pos identifies the stream and position in the stream to receive updates from.
+    SyncCookie sync_pos = 2;
+}
+
+message AddStreamToSyncResponse {}
+
+// RemoveStreamFromSyncRequest stops the client to receive updates from this stream in the sync session.
+// Note that due to buffering in the stream it is possible still receives several updates for this stream after it was
+// removed.
+message RemoveStreamFromSyncRequest {
+    string sync_id = 1;
+    bytes stream_id = 2;
+}
+
+message RemoveStreamFromSyncResponse {}
+
+// ModifySyncRequest adds or removes streams from an existing sync session.
+message ModifySyncRequest {
+  // Backfill is a message that contains the details of a backfill request.
+  // This message is used to request a backfill of streams that are already in the shared sync session
+  // before sending latest updates: backfill by cookie -> send latest updates.
+  // Important node to client: duplicated events might be sent once in the backfill and latest updates.
+  message Backfill {
+    // backfill_streams is the list of sync cookies to backfill
+    repeated SyncCookie streams = 1;
+    // sync_id is the id of the sync session to backfill.
+    // This is the sync ID between the end client and the node that initiated the sync session.
+    // The sync ID below is the sync ID between the node that initiated the sync session and the node that is backfilling.
+    string sync_id = 2;
+  }
+
+  // sync_id is the id of the sync session.
+  string sync_id = 1;
+  // add_streams contains the stream cookies for streams to add to the stream sync session.
+  repeated SyncCookie add_streams = 2;
+  // remove_streams contains the stream id's to remove from the sync session.
+  repeated bytes remove_streams = 3;
+  // backfill_streams contains the backfill requests to perform before sending the latest updates.
+  Backfill backfill_streams = 4;
+}
+
+// SyncStreamOpStatus contains details why adding or removing a stream to/from a sync session failed.
+message SyncStreamOpStatus {
+  // stream_id that failed to add/remove to/from the sync session.
+  bytes stream_id = 1;
+  // code represents the error code
+  int32 code = 2;
+  // message describing what happened
+  string message = 3;
+  // node_address is the address of the node that failed to add/remove the stream.
+  bytes node_address = 4;
+}
+
+// ModifySyncResponse contains the details of a stream sync modification request.
+message ModifySyncResponse {
+  // List with streams that failed to add to the sync operation.
+  repeated SyncStreamOpStatus adds = 1;
+  // List with streams that failed to be removed from the sync operation.
+  repeated SyncStreamOpStatus removals = 2;
+  // backfills is the list of backfills that were requested to be performed.
+  repeated SyncStreamOpStatus backfills = 3;
+}
+
+// CancelSyncRequest cancels the sync session.
+message CancelSyncRequest {
+    // sync_id is the unique id of the sync session.
+    string sync_id = 1;
+}
+
+message CancelSyncResponse {}
+
+// PingSyncRequest is a request to receive a pong in the sync session stream.
+message PingSyncRequest {
+    // sync_id is the unique id of the sync session.
+    string sync_id = 1;
+    // nonce is the pong to return in the sync session stream.
+    string nonce = 2;
+}
+
+message PingSyncResponse {}
+
+service StreamService {
+    rpc Info(InfoRequest) returns (InfoResponse);
+    rpc CreateStream(CreateStreamRequest) returns (CreateStreamResponse);
+    rpc CreateMediaStream(CreateMediaStreamRequest) returns (CreateMediaStreamResponse);
+    rpc GetStream(GetStreamRequest) returns (GetStreamResponse);
+    rpc GetStreamEx(GetStreamExRequest) returns (stream GetStreamExResponse);
+    rpc GetMiniblocks(GetMiniblocksRequest) returns (GetMiniblocksResponse);
+    rpc GetLastMiniblockHash(GetLastMiniblockHashRequest) returns (GetLastMiniblockHashResponse);
+    rpc AddEvent(AddEventRequest) returns (AddEventResponse);
+    rpc AddMediaEvent(AddMediaEventRequest) returns (AddMediaEventResponse);
+    rpc SyncStreams(SyncStreamsRequest) returns (stream SyncStreamsResponse);
+    rpc AddStreamToSync(AddStreamToSyncRequest) returns (AddStreamToSyncResponse);
+    // ModifySync adds/removes streams to/from an in progress sync session.
+    // The client must check ModifySyncResponse to determine which streams failed to add/remove.
+    //
+    // Note that it is possible for the client to receive stream updates for streams that are added
+    // or stops receiving stream updates for streams that are removed before this calls returns.
+    rpc ModifySync(ModifySyncRequest) returns (ModifySyncResponse);
+    rpc CancelSync(CancelSyncRequest) returns (CancelSyncResponse);
+    rpc RemoveStreamFromSync(RemoveStreamFromSyncRequest) returns (RemoveStreamFromSyncResponse);
+    rpc PingSync(PingSyncRequest) returns (PingSyncResponse);
+}
+
+enum SyncOp {
+    SYNC_UNSPECIFIED = 0;
+    SYNC_NEW = 1; // new sync
+    SYNC_CLOSE = 2; // close the sync
+    SYNC_UPDATE = 3; // update from server
+    SYNC_PONG = 4; // respond to the ping message from the client.
+    SYNC_DOWN = 5; // indication that stream updates could (temporarily) not be provided
+}
+
+enum MembershipOp {
+    SO_UNSPECIFIED = 0;
+    SO_INVITE = 1;
+    SO_JOIN = 2;
+    SO_LEAVE = 3;
+}
+
+enum MembershipReason {
+    MR_NONE = 0;
+    MR_NOT_ENTITLED = 1;
+    MR_EXPIRED = 2;
+}
+
+enum ChannelOp {
+    CO_UNSPECIFIED = 0;
+    CO_CREATED = 1;
+    CO_DELETED = 2;
+    CO_UPDATED = 4;
+}
+
+enum MessageInteractionType {
+    MESSAGE_INTERACTION_TYPE_UNSPECIFIED = 0;
+    MESSAGE_INTERACTION_TYPE_REPLY = 1;
+    MESSAGE_INTERACTION_TYPE_REACTION = 2;
+    MESSAGE_INTERACTION_TYPE_POST = 3;
+    MESSAGE_INTERACTION_TYPE_EDIT = 4;
+    MESSAGE_INTERACTION_TYPE_REDACTION = 5;
+    MESSAGE_INTERACTION_TYPE_TIP = 6;
+    MESSAGE_INTERACTION_TYPE_TRADE = 7;
+    MESSAGE_INTERACTION_TYPE_SLASH_COMMAND = 8;
+}
+
+enum GroupMentionType {
+    GROUP_MENTION_TYPE_UNSPECIFIED = 0;
+    GROUP_MENTION_TYPE_AT_CHANNEL = 1;
+}
+
+enum EncryptedDataVersion {
+    ENCRYPTED_DATA_VERSION_0 = 0;
+    ENCRYPTED_DATA_VERSION_1 = 1;
+}
+
+message InteractionRequestPayload {
+    message Signature {
+        // Type of signing method to use. The app must call the
+        // corresponding method on the wallet as noted below.
+        enum SignatureType {
+            PERSONAL_SIGN = 0; // -> personal_sign (EIP-191)
+            TYPED_DATA = 1;    // -> eth_signTypedData_v4 (EIP-712)
+        }
+
+        // Specifies which signature verification methods are acceptable.
+        // EIP-712: EOA wallets only (verified via ecrecover)
+        // EIP-1271: Smart contract wallets (verified via isValidSignature)
+        enum SignatureValidation {
+            UNSPECIFIED = 0;
+            EIP712_ONLY = 1;
+            EIP712_OR_EIP1271 = 2;
+        }
+
+        // A unique identifier for this interaction.
+        // Used to correlate an InteractionRequest with its InteractionResponse.
+        string id = 1;
+        // The hex encoded data to be signed.
+        // - For PERSONAL_SIGN: UTF-8 text (e.g. SIWE message).
+        // - For TYPED_DATA: JSON-encoded EIP-712 typed data
+        // SECURITY REQUIREMENT:
+        // The sender must embed any nonce, timestamp, audience, or session binding
+        // INSIDE the "data" payload before signing.
+        // Example for personal_sign:
+        // "Sign in to example.com\nNonce: 83fa29\nIssued At: 2025-10-22T12:00Z"
+        string data = 2;
+        string chain_id = 3;
+        // The address of the signer wallet. If not provided, the user can use any wallet to sign
+        // this is useful in the case where a bot wants to send an interaction request to a specific user
+        optional string signer_wallet = 4;
+        // Which signature method the app expects the wallet to use.
+        SignatureType type = 5;
+        // Optional: a short title for the wallet's signature dialog (UX only).
+        optional string title = 6;
+        // Optional: a subtitle or human-readable explanation (UX only).
+        optional string subtitle = 7;
+
+        // Which signature verification methods are allowed for this request.
+        optional SignatureValidation signature_validation = 8;
+    }
+
+    message Form {
+        message Component {
+            string id = 1;
+            message Button {
+                string label = 1;
+            }
+
+            message TextInput {
+                string placeholder = 1;
+            }
+
+            oneof component {
+                Button button = 101;
+                TextInput text_input = 102;
+            }
+        }
+        string id = 1;
+        optional string title = 2;
+        optional string subtitle = 3;
+        repeated Component components = 4;
+    }
+
+    message Transaction {
+        message EVMContent {
+            string chain_id = 1;
+            string to = 2;
+            string value = 3;
+            string data = 4;
+            optional string signer_wallet = 5;
+        }
+
+        string id = 1;
+        optional string title = 2;
+        optional string subtitle = 3;
+
+        oneof content {
+            EVMContent evm = 101;
+        }
+    }
+
+    // if present, encrypt the interaction response with to encryption device
+    UserMetadataPayload.EncryptionDevice encryption_device = 1;
+
+    oneof content {
+        Signature signature = 101;
+        Form form = 102;
+        Transaction transaction = 103;
+    }
+}
+
+message InteractionRequest {
+    reserved 2;
+    // Optional: identifies the recipient. If not provided, the interaction is for anyone to interact with.
+    optional bytes recipient = 1;
+    // encrypted binary InteractionRequestPayload
+    EncryptedData encrypted_data = 3;
+    optional bytes thread_id = 4;
+}
+
+message InteractionResponse {
+    // The recipient of the interaction response.
+    bytes recipient = 1;
+    // encrypted binary InteractionResponsePayload
+    EncryptedData encrypted_data = 2;
+    optional bytes thread_id = 3;
+}
+
+message InteractionResponsePayload {
+    message Signature {
+        // The id of the request that this response is for
+        string request_id = 1;
+        // The resulting signature in hex
+        string signature = 2;
+    }
+
+    message Form {
+        message Component {
+            string id = 1;
+            message Button {
+            }
+            message TextInput {
+                string value = 1;
+            }
+            oneof component {
+                Button button = 101;
+                TextInput text_input = 102;
+            }
+        }
+        string request_id = 1;
+        repeated Component components = 2;
+    }
+
+    message Transaction {
+        string request_id = 1;
+        string tx_hash = 2;
+    }
+
+    bytes salt = 1;
+    oneof content {
+        Signature signature = 101;
+        Form form = 102;
+        Transaction transaction = 103;
+    }
+}
+
+// Codes from 1 to 16 match gRPC/Connect codes.
+enum Err {
+    ERR_UNSPECIFIED = 0;
+
+    // Canceled indicates that the operation was canceled, typically by the
+	// caller.
+    CANCELED = 1;
+
+	// Unknown indicates that the operation failed for an unknown reason.
+	UNKNOWN = 2;
+
+	// InvalidArgument indicates that client supplied an invalid argument.
+	INVALID_ARGUMENT  = 3;
+
+	// DeadlineExceeded indicates that deadline expired before the operation
+	// could complete.
+	DEADLINE_EXCEEDED  = 4;
+
+	// NotFound indicates that some requested entity (for example, a file or
+	// directory) was not found.
+	NOT_FOUND  = 5;
+
+	// AlreadyExists indicates that client attempted to create an entity (for
+	// example, a file or directory) that already exists.
+	ALREADY_EXISTS  = 6;
+
+	// PermissionDenied indicates that the caller doesn't have permission to
+	// execute the specified operation.
+	PERMISSION_DENIED  = 7;
+
+	// ResourceExhausted indicates that some resource has been exhausted. For
+	// example, a per-user quota may be exhausted or the entire file system may
+	// be full.
+	RESOURCE_EXHAUSTED  = 8;
+
+	// FailedPrecondition indicates that the system is not in a state
+	// required for the operation's execution.
+	FAILED_PRECONDITION  = 9;
+
+	// Aborted indicates that operation was aborted by the system, usually
+	// because of a concurrency issue such as a sequencer check failure or
+	// transaction abort.
+	ABORTED  = 10;
+
+	// OutOfRange indicates that the operation was attempted past the valid
+	// range (for example, seeking past end-of-file).
+	OUT_OF_RANGE = 11;
+
+	// Unimplemented indicates that the operation isn't implemented,
+	// supported, or enabled in this service.
+	UNIMPLEMENTED = 12;
+
+	// Internal indicates that some invariants expected by the underlying
+	// system have been broken. This code is reserved for serious errors.
+	INTERNAL = 13;
+
+	// Unavailable indicates that the service is currently unavailable. This
+	// is usually temporary, so clients can back off and retry idempotent
+	// operations.
+	UNAVAILABLE = 14;
+
+	// DataLoss indicates that the operation has resulted in unrecoverable
+	// data loss or corruption.
+	DATA_LOSS = 15;
+
+	// Unauthenticated indicates that the request does not have valid
+	// authentication credentials for the operation.
+	UNAUTHENTICATED = 16;
+
+    DEBUG_ERROR = 17;
+    BAD_STREAM_ID = 18;
+    BAD_STREAM_CREATION_PARAMS = 19;
+    INTERNAL_ERROR_SWITCH = 20;
+    BAD_EVENT_ID = 21;
+    BAD_EVENT_SIGNATURE = 22;
+    BAD_HASH_FORMAT = 23;
+    BAD_PREV_MINIBLOCK_HASH = 24;
+    NO_EVENT_SPECIFIED = 25;
+    BAD_EVENT = 26;
+    USER_CANT_POST = 27;
+    STREAM_BAD_HASHES = 28;
+    STREAM_EMPTY = 29;
+    STREAM_BAD_EVENT = 30;
+    BAD_DELEGATE_SIG = 31;
+    BAD_PUBLIC_KEY = 32;
+    BAD_PAYLOAD = 33;
+    BAD_HEX_STRING = 34;
+    BAD_EVENT_HASH = 35;
+    BAD_SYNC_COOKIE = 36;
+    DUPLICATE_EVENT = 37;
+    BAD_BLOCK = 38;
+    STREAM_NO_INCEPTION_EVENT = 39;
+    BAD_BLOCK_NUMBER = 40;
+    BAD_MINIPOOL_SLOT = 41;
+    BAD_CREATOR_ADDRESS = 42;
+    STALE_DELEGATE = 43;
+    BAD_LINK_WALLET_BAD_SIGNATURE = 44;
+    BAD_ROOT_KEY_ID = 45;
+    UNKNOWN_NODE = 46;
+    DB_OPERATION_FAILURE = 47;
+    MINIBLOCKS_STORAGE_FAILURE = 48;
+    BAD_ADDRESS = 49;
+    BUFFER_FULL = 50;
+    BAD_CONFIG = 51;
+    BAD_CONTRACT = 52;
+    CANNOT_CONNECT = 53;
+    CANNOT_GET_LINKED_WALLETS = 54;
+    CANNOT_CHECK_ENTITLEMENTS = 55;
+    CANNOT_CALL_CONTRACT = 56;
+    SPACE_DISABLED = 57;
+    CHANNEL_DISABLED = 58;
+    WRONG_STREAM_TYPE = 59;
+    MINIPOOL_MISSING_EVENTS = 60;
+    STREAM_LAST_BLOCK_MISMATCH = 61;
+    DOWNSTREAM_NETWORK_ERROR = 62;
+
+    // Stream replica on the local node does not have miniblock with given number yet.
+    // This is a temporary state and the node will have the miniblock at a later point in time.
+    // The client should retry with an increasing delay, starting at 100ms.
+    MINIBLOCK_TOO_NEW = 63;
+
+    // Stream replica on the local node already has a miniblock with the requested
+    // proposal number.
+    MINIBLOCK_TOO_OLD = 64;
+
+    // Quorum failed to be reached for write operation.
+    QUORUM_FAILED = 65;
+
+    // App webhook could not successfully be called.
+    CANNOT_CALL_WEBHOOK = 66;
+
+    // App webhook response was unparsable as JSON or did not match expected schema.
+    MALFORMED_WEBHOOK_RESPONSE = 67;
+
+    // The encryption device returned by the app service webhook does not match the first
+    // encryption device found in the app's user metadata stream.
+    BAD_ENCRYPTION_DEVICE = 68;
+
+    // STREAM_RECONCILIATION_REQUIRED indicates that the stream is out of sync and must be 
+    // reconciled before it can be used.
+    STREAM_RECONCILIATION_REQUIRED = 69;
+
+    // SYNC_SESSION_RUNNER_EMPTY indicates that a sync session runner is being cancelled because
+    // it no longer hosts any streams. 
+    SYNC_SESSION_RUNNER_EMPTY = 70;
+
+    // SYNC_SESSION_RUNNER_UNASSIGNABLE occurs when an attempt is made to assign a stream to a
+    // sync session runner that is full or closed.
+    SYNC_SESSION_RUNNER_UNASSIGNABLE = 71;
+    
+    // Miniblocks are not found in the requested range. This is different from
+    // MINIBLOCKS_STORAGE_FAILURE which indicates corruption or database issues.
+    // This error is retriable and indicates the miniblocks might be available
+    // on other nodes.
+    MINIBLOCKS_NOT_FOUND = 72;
+}

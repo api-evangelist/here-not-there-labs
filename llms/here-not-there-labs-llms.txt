@@ -1,0 +1,113 @@
+# Towns
+
+## Docs
+
+- [Changelog](https://docs.towns.com/build/bots/changelog.md)
+- [Events](https://docs.towns.com/build/bots/events.md)
+- [External Integrations](https://docs.towns.com/build/bots/external-interactions.md)
+- [Getting Started](https://docs.towns.com/build/bots/getting-started.md)
+- [Interactions](https://docs.towns.com/build/bots/interactions.md)
+- [Introduction](https://docs.towns.com/build/bots/introduction.md)
+- [Local Development](https://docs.towns.com/build/bots/local-development.md)
+- [Onchain Integrations](https://docs.towns.com/build/bots/onchain-integrations.md)
+- [Roles](https://docs.towns.com/build/bots/roles.md)
+- [Slash Commands](https://docs.towns.com/build/bots/slash-commands.md)
+- [Troubleshooting](https://docs.towns.com/build/bots/troubleshooting.md)
+- [Delegate Key Signing](https://docs.towns.com/build/delegate-key-signing.md)
+- [Getting Started](https://docs.towns.com/build/miniapps/getting-started.md)
+- [Introduction](https://docs.towns.com/build/miniapps/introduction.md)
+- [SDK](https://docs.towns.com/build/miniapps/sdk.md)
+- [TownsSyncProvider](https://docs.towns.com/build/react-sdk/api/TownsSyncProvider.md)
+- [connectTowns](https://docs.towns.com/build/react-sdk/api/connectTowns.md)
+- [connectTownsWithBearerToken](https://docs.towns.com/build/react-sdk/api/connectTownsWithBearerToken.md)
+- [getRoom](https://docs.towns.com/build/react-sdk/api/getRoom.md)
+- [signAndConnect](https://docs.towns.com/build/react-sdk/api/signAndConnect.md)
+- [useAdminRedact](https://docs.towns.com/build/react-sdk/api/useAdminRedact.md)
+- [useAgentConnection](https://docs.towns.com/build/react-sdk/api/useAgentConnection.md)
+- [useChannel](https://docs.towns.com/build/react-sdk/api/useChannel.md)
+- [useCreateChannel](https://docs.towns.com/build/react-sdk/api/useCreateChannel.md)
+- [useCreateDm](https://docs.towns.com/build/react-sdk/api/useCreateDm.md)
+- [useCreateGdm](https://docs.towns.com/build/react-sdk/api/useCreateGdm.md)
+- [useCreateSpace](https://docs.towns.com/build/react-sdk/api/useCreateSpace.md)
+- [useDm](https://docs.towns.com/build/react-sdk/api/useDm.md)
+- [useGdm](https://docs.towns.com/build/react-sdk/api/useGdm.md)
+- [useJoinSpace](https://docs.towns.com/build/react-sdk/api/useJoinSpace.md)
+- [useMember](https://docs.towns.com/build/react-sdk/api/useMember.md)
+- [useMemberList](https://docs.towns.com/build/react-sdk/api/useMemberList.md)
+- [useMyMember](https://docs.towns.com/build/react-sdk/api/useMyMember.md)
+- [useObservable](https://docs.towns.com/build/react-sdk/api/useObservable.md)
+- [useReactions](https://docs.towns.com/build/react-sdk/api/useReactions.md)
+- [useRedact](https://docs.towns.com/build/react-sdk/api/useRedact.md)
+- [useScrollback](https://docs.towns.com/build/react-sdk/api/useScrollback.md)
+- [useSendMessage](https://docs.towns.com/build/react-sdk/api/useSendMessage.md)
+- [useSendReaction](https://docs.towns.com/build/react-sdk/api/useSendReaction.md)
+- [useSetDisplayName](https://docs.towns.com/build/react-sdk/api/useSetDisplayName.md)
+- [useSetEnsAddress](https://docs.towns.com/build/react-sdk/api/useSetEnsAddress.md)
+- [useSetNft](https://docs.towns.com/build/react-sdk/api/useSetNft.md)
+- [useSetUsername](https://docs.towns.com/build/react-sdk/api/useSetUsername.md)
+- [useSpace](https://docs.towns.com/build/react-sdk/api/useSpace.md)
+- [useSyncAgent](https://docs.towns.com/build/react-sdk/api/useSyncAgent.md)
+- [useThreads](https://docs.towns.com/build/react-sdk/api/useThreads.md)
+- [useTimeline](https://docs.towns.com/build/react-sdk/api/useTimeline.md)
+- [useTowns](https://docs.towns.com/build/react-sdk/api/useTowns.md)
+- [useTownsAuthStatus](https://docs.towns.com/build/react-sdk/api/useTownsAuthStatus.md)
+- [useUserDms](https://docs.towns.com/build/react-sdk/api/useUserDms.md)
+- [useUserGdms](https://docs.towns.com/build/react-sdk/api/useUserGdms.md)
+- [useUserSpaces](https://docs.towns.com/build/react-sdk/api/useUserSpaces.md)
+- [Changelog](https://docs.towns.com/build/react-sdk/changelog.md)
+- [Getting Started](https://docs.towns.com/build/react-sdk/getting-started.md)
+- [Towns Encryption Protocol](https://docs.towns.com/build/towns-encryption.md): How the Towns encryption and decryption protocol works.
+- [Messaging Data Structures](https://docs.towns.com/build/towns-messaging-datastructures.md)
+- [Chunk Management](https://docs.towns.com/concepts/chunk-management.md)
+- [Cross Chain Entitlements](https://docs.towns.com/concepts/cross-chain-entitlement-checking.md)
+- [Encryption](https://docs.towns.com/concepts/encryption.md): End-to-End Message Encryption
+- [Mini Blocks](https://docs.towns.com/concepts/mini-blocks.md)
+- [Network Partitioning](https://docs.towns.com/concepts/network-partitioning.md)
+- [Node to Node communication](https://docs.towns.com/concepts/node-node-communication.md)
+- [Rebalancing](https://docs.towns.com/concepts/rebalancing.md)
+- [Snapshotting](https://docs.towns.com/concepts/snapshotting.md)
+- [Stream Checkpointing](https://docs.towns.com/concepts/stream-checkpointing.md)
+- [Towns Protocol Grants Program](https://docs.towns.com/grants/grants-program.md): Build the future of blockchain communication
+- [Introduction](https://docs.towns.com/introduction.md)
+- [Contracts](https://docs.towns.com/node-operator/contracts.md): Smart Contracts powering the Towns Protocol are deployed to Ethereum L2 networks for testnet and mainnet. This page provides a list of deployed contracts needed for running nodes and their network coordinates.
+- [Introduction](https://docs.towns.com/node-operator/introduction.md): The Towns Protocol is powered by a network of Stream Nodes that are registered on chain and run by Node Operators. This guide is intended as an introduction to getting started as an operator and running a node in the Towns network.
+- [Release Process](https://docs.towns.com/node-operator/release-process.md): Towns protocol releases process and guidelines for node operators.
+- [Best Practices](https://docs.towns.com/node-operator/tutorials/node-best-practices.md): The following guide describes high level best practices for running a Stream Node as a node operator.
+- [Node Observability](https://docs.towns.com/node-operator/tutorials/node-observability.md): The following guide describes the observability capabilities of Towns Stream Nodes and how to monitor and manage them.
+- [Register Operator](https://docs.towns.com/node-operator/tutorials/register-towns-operator.md): The following guide illustrates how to register a new Node Operator to begin onboarding nodes. This guide uses Testnet as an example. The Mainnet guide follows from this guide with modifications to contract addresses and rpc url for Towns Chain.
+- [Register Node](https://docs.towns.com/node-operator/tutorials/register-towns-stream-node.md): The following guide illustrates how to register a new Stream Node instance on Towns Chain. This guide uses Testnet as an example. The Mainnet guide follows from this guide with modifications to contract addresses and rpc url for Towns Chain.
+- [System Configuration](https://docs.towns.com/node-operator/tutorials/system-configuration-steps.md): The following guide describes steps and best practices for configuring a Towns Stream Node after meeting the [system requirements](/node-operator/tutorials/system-requirements-installation).
+- [System Requirements & Installation](https://docs.towns.com/node-operator/tutorials/system-requirements-installation.md): The following guide describes system requirements, dependencies, and installation details recommended for running a Towns Stream Node. This guide applies to nodes running in either Testnet or Mainnet.
+- [Upgrade Node](https://docs.towns.com/node-operator/tutorials/upgrade-towns-stream-node.md): The following guide illustrates how to upgrade a Towns Stream Node on Towns Chain in Testnet. The Mainnet guide follows from this guide with modifications to contract addresses and rpc url for Towns Chain.
+- [Governance Framework](https://docs.towns.com/token-governance/governance-framework.md)
+- [Overview](https://docs.towns.com/token-governance/overview.md)
+- [Towns Token](https://docs.towns.com/token-governance/towns-token.md)
+- [Node Operators](https://docs.towns.com/towns-messaging-protocol/node-operators.md)
+- [Overview](https://docs.towns.com/towns-messaging-protocol/overview.md)
+- [Event Lifecycle](https://docs.towns.com/towns-messaging-protocol/stream-nodes/event-lifecycle.md)
+- [Overview](https://docs.towns.com/towns-messaging-protocol/stream-nodes/overview.md)
+- [Stream Allocation](https://docs.towns.com/towns-messaging-protocol/stream-nodes/stream-allocation.md)
+- [Node Registry](https://docs.towns.com/towns-messaging-protocol/towns-chain/node-registry.md)
+- [Overview](https://docs.towns.com/towns-messaging-protocol/towns-chain/overview.md)
+- [Stream Registry](https://docs.towns.com/towns-messaging-protocol/towns-chain/stream-registry.md)
+- [Smart Contracts](https://docs.towns.com/towns-smart-contracts/contracts.md)
+- [Overview](https://docs.towns.com/towns-smart-contracts/overview.md)
+- [Pricing Modules](https://docs.towns.com/towns-smart-contracts/pricing-modules.md)
+- [Roles and Entitlements](https://docs.towns.com/towns-smart-contracts/roles-entitlements.md): Understanding Roles, Entitlements, and Permissions in Towns Protocol
+- [Space Membership](https://docs.towns.com/towns-smart-contracts/space-membership.md)
+- [Space Ownership](https://docs.towns.com/towns-smart-contracts/space-ownership.md)
+- [Upgradeability](https://docs.towns.com/towns-smart-contracts/upgradeability.md): The Diamond Pattern with Facets
+- [Claiming Rewards](https://docs.towns.com/towns-token/claiming.md)
+- [Economics](https://docs.towns.com/towns-token/economics.md)
+- [Mechanics](https://docs.towns.com/towns-token/mechanics.md)
+- [Staking](https://docs.towns.com/towns-token/staking.md)
+- [Utility](https://docs.towns.com/towns-token/utility.md)
+- [MiCA Whitepaper](https://docs.towns.com/white-paper/mica-whitepaper.md)
+- [Towns Protocol Technical Whitepaper](https://docs.towns.com/white-paper/technical-whitepaper.md): Comprehensive technical whitepaper covering Towns Protocol's architecture, cryptographic methodologies, consensus mechanisms, economic model, and governance structure for decentralized communication.
+- [Towns Technical Overview](https://docs.towns.com/white-paper/towns-technical-overview.md): Comprehensive technical overview covering Towns Protocol's legal classification, token economics, technical architecture, governance structure, and regulatory compliance for decentralized communication infrastructure.
+
+## OpenAPI Specs
+
+- [cspell](https://docs.towns.com/cspell.json)
+- [package](https://docs.towns.com/package.json)
+- [openapi](https://docs.towns.com/api-reference/openapi.json)

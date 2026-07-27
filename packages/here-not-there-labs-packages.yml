@@ -1,0 +1,119 @@
+generated: '2026-07-19'
+method: searched
+source: >-
+  npm registry (registry.npmjs.org) search of the @towns-protocol scope +
+  docs.towns.com SDK documentation. First-party packages published by Here Not
+  There, Inc. (Towns Protocol).
+provider: Here Not There Labs
+product: Towns Protocol
+registries:
+  npm: https://www.npmjs.com/org/towns-protocol
+notes: >-
+  Towns Protocol ships as a set of first-party TypeScript packages under the
+  @towns-protocol npm scope (current line 1.0.x). The older @towns-labs scope is
+  the prior publishing name for the same libraries and is treated as legacy.
+packages:
+- name: "@towns-protocol/sdk"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: sdk
+  language: TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/sdk
+  description: Core client SDK for connecting to Towns Protocol streams and spaces.
+- name: "@towns-protocol/react-sdk"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: sdk
+  language: TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/react-sdk
+  description: React hooks for the Towns Protocol SDK (40+ hooks; see react-sdk docs).
+- name: "@towns-protocol/bot"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: framework
+  language: TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/bot
+  description: Bot framework for Towns (event handlers, slash commands, webhooks).
+- name: "@towns-protocol/encryption"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: library
+  language: TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/encryption
+  description: End-to-end message encryption library. Docs at docs.towns.com/build/towns-encryption.
+- name: "@towns-protocol/sdk-crypto"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: library
+  language: TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/sdk-crypto
+  description: Cryptographic functions used across the Towns SDK.
+- name: "@towns-protocol/proto"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: library
+  language: TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/proto
+  description: Tools and source for the Towns/River protobuf definitions.
+- name: "@towns-protocol/generated"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: library
+  language: TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/generated
+  description: Generated protobuf/Connect-RPC bindings for Towns.
+- name: "@towns-protocol/rpc-connector"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: library
+  language: TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/rpc-connector
+  description: Wrapper around @connectrpc/connect-node for Towns Stream RPC.
+- name: "@towns-protocol/web3"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: library
+  language: TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/web3
+  description: Dapp bindings for Towns Space and Registry smart contracts.
+- name: "@towns-protocol/contracts"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: library
+  language: Solidity/TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/contracts
+  description: Towns Protocol smart contracts.
+- name: "@towns-protocol/utils"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: library
+  language: TypeScript
+  url: https://www.npmjs.com/package/@towns-protocol/utils
+  description: Logging and shared utility helpers.
+- name: "towns-bot"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: cli
+  language: TypeScript
+  url: https://www.npmjs.com/package/towns-bot
+  description: CLI for creating and managing Towns Protocol bot projects (bunx towns-bot init).
+- name: "create-towns-protocol-app"
+  ecosystem: npm
+  official: true
+  version: 1.0.3
+  kind: scaffold
+  language: TypeScript
+  url: https://www.npmjs.com/package/create-towns-protocol-app
+  description: Scaffolder for a new React Towns Protocol app.

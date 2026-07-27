@@ -1,0 +1,17 @@
+generated: '2026-07-19'
+method: generated
+source: >-
+  Generated from documented Towns Protocol operations: bot event handlers
+  (docs.towns.com/build/bots/events) and React SDK hooks
+  (docs.towns.com/build/react-sdk/api/*, enumerated in docs.towns.com/llms.txt).
+  Every operation named below is a real, documented SDK symbol - none invented.
+provider: Here Not There Labs
+product: Towns Protocol
+type: AgentSkill
+skills:
+- name: build-towns-bot
+  file: here-not-there-labs-build-towns-bot.md
+  description: Scaffold, implement, and deploy a Towns Protocol bot that responds to messages and slash commands.
+- name: create-space-and-send-message
+  file: here-not-there-labs-create-space-and-send-message.md
+  description: Use the Towns React SDK to connect a wallet, create/join a space, and send messages.

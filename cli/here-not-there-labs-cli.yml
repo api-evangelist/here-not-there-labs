@@ -1,0 +1,35 @@
+generated: '2026-07-19'
+method: searched
+source: >-
+  docs.towns.com/build/bots/getting-started + npm (towns-bot). First-party CLI
+  for scaffolding and managing Towns Protocol bots.
+provider: Here Not There Labs
+product: Towns Protocol
+name: towns-bot
+description: >-
+  First-party CLI for creating and managing Towns Protocol bot projects. Used to
+  scaffold a bot from a template, then developed against the @towns-protocol/bot
+  framework and deployed with a webhook URL registered in the Towns developer
+  portal (app.towns.com/developer).
+package: towns-bot
+package_url: https://www.npmjs.com/package/towns-bot
+docs: https://docs.towns.com/build/bots/getting-started
+install:
+- method: bunx
+  command: bunx towns-bot init my-bot
+- method: npx
+  command: npx towns-bot init my-bot
+runtime:
+  node: ">=20"
+  recommended_runtime: bun
+commands:
+- name: init
+  usage: towns-bot init <project-name>
+  description: Scaffold a new Towns bot project from the default template.
+flows:
+- name: create-and-deploy-bot
+  steps:
+  - Create a bot at app.towns.com/developer to obtain APP_PRIVATE_DATA and JWT_SECRET.
+  - Scaffold locally with `bunx towns-bot init my-bot`.
+  - Implement event handlers (onMessage, onSlashCommand, onReaction, ...) using @towns-protocol/bot.
+  - Deploy the bot service and register its webhook URL in the developer portal.
