@@ -16,6 +16,17 @@ description: >-
   the company's public developer surface (docs.towns.com, app.towns.com, the
   towns-protocol GitHub organization, and npm).
 url: https://raw.githubusercontent.com/api-evangelist/here-not-there-labs/refs/heads/main/apis.yml
+deliveryModel:
+  model: saas
+  open_source: false
+  commercial: true
+  callable_host: false
+  label: Hosted service · you call their endpoint
+  confidence: medium
+  source:
+  - pricing
+  generated: '2026-08-28'
+  method: derived
 accessModel:
   pricing: unknown
   onboarding: unknown
