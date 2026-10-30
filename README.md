@@ -64,18 +64,95 @@
 > Full detail: **[Where this data comes from](https://apievangelist.com/about/where-our-data-comes-from)**
 <!-- API-EVANGELIST-PROVENANCE:END -->
 
-Here Not There Labs (Here Not There, Inc., operating as [hntlabs.com](https://hntlabs.com)) is the a16z-backed company behind **Towns Protocol**, an open, decentralized messaging protocol built on Base (an Ethereum L2). Towns powers ownable, programmable group-chat spaces, memberships, direct messages, and decentralized finance, with end-to-end encrypted message streams carried by a network of Stream Nodes and spaces/entitlements enforced by on-chain smart contracts.
+Here Not There Labs (Here Not There, Inc., operating as hntlabs.com) is the a16z-backed company behind Towns Protocol, an open, decentralized messaging protocol built on Base (an Ethereum L2) that powers ownable, programmable group chat spaces, memberships, direct messages, and decentralized finance. The protocol is delivered to builders as a set of first-party TypeScript packages under the @towns-protocol npm scope (client SDK, React SDK, bot framework, encryption, and generated protobuf bindings), a Connect/gRPC Stream RPC surface defined in public .proto files, a bot/app framework with a webhook-driven event model, and end-to-end message encryption. Spaces, memberships, roles, and entitlements are enforced by on-chain smart contracts, and a network of Stream Nodes run by node operators carries encrypted message streams. This profile was surfaced as an a16z portfolio lead and enriched from the company's public developer surface (docs.towns.com, app.towns.com, the towns-protocol GitHub organization, and npm).
 
-Backed by: a16z
+**Areas:** Company · Messaging · Decentralized · Web3 · Blockchain · Protocol · Chat · Bots · Encryption · SDK
 
-## Developer surface
+## Here Not There Labs on APIs.io
 
-- Docs: https://docs.towns.com
-- Developer portal: https://app.towns.com/developer
-- GitHub: https://github.com/towns-protocol
-- SDKs / packages: `@towns-protocol` npm scope (client SDK, React SDK, bot framework, encryption, protobuf)
-- CLI: `towns-bot`
-- RPC: Connect/gRPC Stream RPC (see `grpc/*.proto`)
-- Bots: webhook-driven event model (see `asyncapi/`)
+Everything profiled for Here Not There Labs is published on APIs.io rather than in this repository. Start at the provider page — **[apis.io/providers/here-not-there-labs/](https://apis.io/providers/here-not-there-labs/)** — or go straight to one of the APIs or properties below.
 
-This profile was surfaced as an a16z portfolio lead and enriched from the company's public developer surface (docs, GitHub, npm).
+### APIs (1)
+
+- [Towns Protocol](https://apis.io/apis/here-not-there-labs/towns-protocol/) — Towns Protocol is an open, decentralized messaging protocol built on Base. Builders integrate via first-party TypeScript SDKs, a React SDK of hooks, and a…
+
+### Published properties
+
+Each property below is a page on APIs.io carrying the machine-readable artifact and what it says.
+
+#### AsyncAPI (1)
+
+Event-driven and webhook contracts.
+
+- [Here Not There Labs Bot Events](https://apis.io/asyncapis/here-not-there-labs/here-not-there-labs-bot-events/)
+
+#### Security (2)
+
+Authentication, trust centre, and vulnerability disclosure.
+
+- [Here Not There Labs Authentication](https://apis.io/security/here-not-there-labs/here-not-there-labs-authentication/)
+- [Here Not There Labs Domain Security](https://apis.io/security/here-not-there-labs/here-not-there-labs-domain-security/)
+
+## Where to find this API
+
+Links to the company's own pages. This repository publishes no copy of their specifications — the canonical document is theirs and lives at the URLs below.
+
+- [Website](https://www.towns.com)
+- [Documentation](https://docs.towns.com)
+- [Getting started](https://docs.towns.com/build/bots/getting-started)
+- [API reference](https://docs.towns.com/build/react-sdk/getting-started)
+- [Sign up](https://app.towns.com/developer)
+- [GitHub](https://github.com/towns-protocol)
+
+## API Evangelist rating
+
+**Kin Score 32.8** — thin · rubric 0.24.0 · scored 2026-10-17
+
+| Facet | Score |
+|---|---|
+| Discoverability | 73.2 |
+| Contract quality | 39.0 |
+| Contract governance | 4.5 |
+| Operational transparency | 10.5 |
+| Developer ergonomics | 56.5 |
+| Access clarity | 7.9 |
+
+**Agent readiness 20.7** — agent-aware
+
+| Agent-readiness dimension | Result |
+|---|---|
+| Spec Presence | yes |
+| Agentic Access | — |
+| Reversibility Documented | — |
+| MCP Server | — |
+| Auth Clarity | bearer (partial credit) |
+| Idempotency | — |
+| Error Semantics | — |
+| OpenAPI Examples | — |
+| Rate Limit Signal | — |
+| Event Surface Described | yes |
+| Agent Skills | derived (partial credit) |
+| Well Known Catalog | — |
+| Consent Identity | — |
+| Agent Card | — |
+| Dry Run Mode | — |
+| Delegated Identity | — |
+| Protected Resource Metadata | — |
+| Dynamic Client Registration | — |
+| Agentic Commerce | — |
+
+**Regulatory alignment 21.6** — Horizontal (data, software, accessibility, platform)
+
+The rubric is published at [github.com/api-evangelist/kin-score](https://github.com/api-evangelist/kin-score). The per-check breakdown behind these numbers — which checks were earned, partial or missed — along with score history and how this provider compares to its peers, is available at [apis.io/providers/here-not-there-labs/](https://apis.io/providers/here-not-there-labs/).
+
+## How this profile is made
+
+API Evangelist profiles a company's public API surface the way a developer would find it: the website, developer portal and documentation, the specifications it publishes, its public repositories, and its pricing, status and changelog pages. From that it derives the properties above — contracts split per API, workflows, schemas, collections, governance rules, plans and rate limits — and scores them against the published [Kin Score rubric](https://github.com/api-evangelist/kin-score).
+
+The artifacts are published on [APIs.io](https://apis.io), not in this repository. This repository is the public record for Here Not There Labs: the place to say something is wrong, missing or out of date, and to ask for a re-score or a removal.
+
+## Open an issue
+
+- **Something about this listing** — a wrong description, a missing API, a stale artifact or a question about the rating: [open an issue on this repository](https://github.com/api-evangelist/here-not-there-labs/issues/new).
+- **A new API, or one that is not in the catalog yet** — [submit it on APIs.io](https://apis.io/add/).
+- **Anything else** — [the APIs.io inbox](https://github.com/api-search/inbox/issues/new) or [info@apievangelist.com](mailto:info@apievangelist.com).
